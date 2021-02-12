@@ -1,0 +1,188 @@
+---
+title: "hw5"
+author: "jiayi lou"
+date: "2021/2/9"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+#initial analysis
+
+```{r}
+library(car)
+library(tidyverse)
+str(carData::Vocab)#view the data type
+
+library(ggplot2)# Beautiful drawing package
+
+ggplot(Vocab, aes(x = factor(year), y = education,size = vocabulary )) +
+  geom_point()
+
+ggplot(Vocab, aes(x = factor(year), y = vocabulary,size = education)) + geom_point()
+
+```
+
+There are 4 variables in this data set. Our research focuses on the connection between words and other variables, and how to predict. It is difficult to see the pattern through above simple distribution plots.
+
+## sex
+
+```{r}
+Vocab %>%
+  ggplot(mapping = aes(x= sex,y=vocabulary ,fill=sex))+
+  geom_violin()+
+  geom_boxplot()
+Vocab %>%
+  ggplot(mapping = aes(x= sex,y=education ,fill=sex))+
+  geom_violin()+
+  geom_boxplot()
+```
+From the above figure, we can see that the average education level of men is higher than that of women. There is also a big difference in distribution. However,the average vocabulary level of men and women are almost the same. The distribution is also similar.
+
+```{r}
+Vocab %>%
+  ggplot()+
+  geom_bar(mapping = aes(x = factor(year), fill=sex),show.legend = TRUE,position="dodge")
+
+Vocab %>%
+  ggplot()+
+  geom_bar(mapping = aes(x = education , fill=sex),show.legend = TRUE,position="dodge")
+
+Vocab %>%
+  ggplot()+
+  geom_bar(mapping = aes(x= vocabulary , fill=sex,),show.legend = TRUE,position="dodge")
+```
+
+
+Through the histogram, we can see that there are more women than men.
+
+
+## year
+
+```{r}
+Vocab %>%
+  ggplot(aes(factor(year),vocabulary,fill=factor(year)))+
+  geom_violin()+
+  geom_boxplot()
+
+Vocab %>%
+  ggplot(mapping = aes(x= factor(year),y=education,fill=factor(year)))+
+  geom_boxplot()+
+  geom_violin()+
+  geom_boxplot()
+
+```
+
+Excluding the consideration of gender, we found that as the years have grown, everyone’s education level has also risen slowly, but the vocabulary test score has remained at around 6.This makes people suspect that there is no connection between education and vocabulary test results.We will verify this suspicion in the deep analysis section.
+
+
+```{r}
+Vocab %>%
+  ggplot(aes(x=education, fill=vocabulary)) +
+  geom_density() +
+  facet_grid(vocabulary~.)
+```
+Through the density map, we find that people with high education are more likely to get good vocabulary test scores than people with low education. So we can refute the previous view. Education have effects on vocabulary.
+
+## education
+```{r}
+
+Vocab %>%
+  ggplot()+
+  geom_bar(mapping = aes(x = education, fill=factor(year)),show.legend = TRUE)
+```
+
+
+Through the histogram, we can see that there are more women than men, People with 12 levels of education account for a large proportion, and the number of illiterate samples is very small.
+
+
+
+## vocabulary
+
+```{r}
+Vocab %>%
+  ggplot(aes(x = vocabulary,fill=sex))+
+  geom_bar(position="dodge")
+
+```
+
+
+# regression analysis
+
+## simple regression models without interaction
+
+```{r}
+model1<-lm(vocabulary~year+education+sex,Vocab)
+summary(model1)
+```
+
+
+```{r}
+spida2::wald(model1)
+```
+
+For simple regression models without interaction, we don’t need to drop any variables.
+
+
+
+## year
+```{r}
+model.year<-lm(vocabulary~year,Vocab)
+summary(model.year)
+
+ggplot(Vocab,aes(year, vocabulary,colour = sex)) +
+  ggtitle("male vs female")+
+  geom_point() +
+  stat_ellipse(type = "norm", linetype = 1, level=c(0.68) )+
+  stat_ellipse(type = "norm", linetype = 2, level=c(0.95) )+
+  coord_fixed()+
+  geom_smooth(method = "lm",linetype=1,se=FALSE,colour="red")
+
+ggplot(Vocab,aes(year, vocabulary)) +
+  ggtitle("mixed")+
+  geom_point() +
+  stat_ellipse(type = "norm", linetype = 1, level=c(0.68) )+
+  stat_ellipse(type = "norm", linetype = 2, level=c(0.95) )+
+  coord_fixed()+
+  geom_smooth(method = "lm",linetype=1,se=FALSE,colour="red")
+```
+
+It seems there is no connection between year and vocabulary,and confidence ellipse is not titrated.
+
+
+## education
+```{r}
+model.vecabulary<-lm(vocabulary~year*sex,Vocab)
+summary(model.vecabulary)
+
+ggplot(Vocab,aes(education,vocabulary,colour = sex)) +
+  geom_point() +
+  ggtitle("male vs female")+
+  stat_ellipse(type = "norm", linetype = 1, level=c(0.68) )+
+  stat_ellipse(type = "norm", linetype = 2, level=c(0.95) )+
+  coord_fixed()+
+  geom_smooth(method = "lm",linetype=1,se=FALSE,colour="red")
+
+ggplot(Vocab,aes(education,vocabulary)) +
+  geom_point() +
+  ggtitle("mixed")+
+  stat_ellipse(type = "norm", linetype = 1, level=c(0.68) )+
+  stat_ellipse(type = "norm", linetype = 2, level=c(0.95) )+
+  geom_smooth(method = "lm",linetype=1,se=FALSE,colour="red")
+
+
+```
+
+
+Education has positive effect on vocabulary,and confidence ellipse is titrated.
+
+
+
+# model with interaction
+
+
+```{r}
+model.all<-lm(vocabulary~year*education*sex,Vocab)
+summary(model.all)
+```
