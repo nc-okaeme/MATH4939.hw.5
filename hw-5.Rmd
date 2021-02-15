@@ -185,4 +185,33 @@ Education has positive effect on vocabulary,and confidence ellipse is titrated.
 ```{r}
 model.all<-lm(vocabulary~year*education*sex,Vocab)
 summary(model.all)
+
+# model with 3-way interaction
+
+
+```{r}
+model.all<-lm(vocabulary~year*education*sex,Vocab)
+summary(model.all)
+
+anova(model.all,lm(vocabulary~year*education+sex*education+year*sex,Vocab),test='LRT')#Three way interaction term shows significance. 
+
+crPlots(lm(vocabulary~education+sex+year,data=Vocab)) #crPlots suggest that a squared term for education may be of interest
+#An anova test comparing the model with all interaction terms against a model with all interactions plus the squared education term produces a small values, suggesting #significance. 
+anova(model.all,lm(vocabulary~sex*education*year+I(education^2),Vocab),test='LRT') 
+
+#Based on the box and whisker plots, women were initially MORE educated then men at a minimum (excluding outliers), whereas men were MORE educated than women at 
+#a maximum. That is, the lowest educated women were more edcuated then the lowest educated men, and the highest educated women were less educated than the 
+#highest educated men, excluding outliers. It wasn't until around 2004 that the education gap between men and women included in the vocabulary study
+#evened out. For the most part, the average education between men and women is about equal; it is slighlty higher for men from 1989-1993. The average level of 
+#edcuation for women is higher only in 2006. 
+bwplot(education~sex|as.factor(year),Vocab,groups=sex)
+
+#Based on the box and whisker plots comparing sex against vocabulary, men and women have, on average, equal vocabulary levels each year. In the years 1976, 
+#1978, 1984, and 1988 the minimum vocabulary score was higher for women than men, excluding outliers. In the years 1974, 1994, and 1998 the minimum score was #higher for men #than women. The maximum scores are equal for men and women #throughout all years. 
+bwplot(vocabulary~sex|as.factor(year),Vocab,groups=sex)
+
+#There were more women then men particpiating in the survey in every single year that the vocabulary survey was performed
+up(Vocab,~sex+year)
+
+
 ```
