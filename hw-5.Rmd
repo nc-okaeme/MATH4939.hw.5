@@ -179,10 +179,11 @@ Education has positive effect on vocabulary,and confidence ellipse is titrated.
 
 
 
-# model with interaction
+# model with 3-way interaction
 
 
 ```{r}
 model.all<-lm(vocabulary~year*education*sex,Vocab)
 summary(model.all)
+
 ```
